@@ -1,0 +1,339 @@
+<html>
+
+<head>
+<title>Shadow Searcher</title>
+<script src="jquery.js"></script>
+<script src="jrumble.js"></script>
+<script>
+var cnum, canvas, context;
+cnum = 0;
+
+var answers = new Array();
+answers[0] = ["lolipop", "sucker", "lollipop", "lollypop"];
+answers[1] = ["hat", "fedora"];
+answers[2] = ["bagel", "donut"];
+answers[3] = ["mouse", "cursor"];
+answers[4] = ["headphones", "head phones"];
+
+var max = answers.length;
+var d = new Array();
+
+for(var x = 0; x < max; x++)
+	d[x] = x;
+
+var inPlay = false;
+var canvases = document.getElementsByClassName('lc');//canvas 0 is the dark, -1 is the image;b has the image
+var contexts = new Array(canvases.length);
+var width = window.innerWidth;
+var height = window.innerHeight;	
+var rad = 30;
+var imageData;
+var co = 1;
+var fineness = 1;
+
+	for(var x = 0; x < max; x++)
+	{
+		swapRandom(answers, d);
+	}
+
+  function swapRandom(a, da){
+  	var l = a.length;
+  	var ia = parseInt(Math.random() * l);
+  	var ib = parseInt(Math.random() * l);
+  	while(ia==ib)
+  		ib=parseInt(Math.random() * l);
+  	
+  	var temp = a[ia];
+  	var dt = da[ia];
+  	a[ia] = a[ib];
+  	da[ia] = da[ib];
+  	a[ib] = temp;
+  	da[ib] = dt;
+  	// return a;
+  }
+
+
+  function mm (e) {
+
+  	// if(!inPlay)
+  	// 	return;
+    if(e.offsetX==undefined){
+      var x = e.pageX-$('#grid').offset().left; y = e.pageY-$('#grid').offset().top; 
+    }
+    else
+    var x = e.offsetX, y = e.offsetY;
+		// console.log(x + ":" + y);
+	blacken();
+	makeCircle(x, y);
+
+  }
+
+  function makeCircle(x, y){
+  	var max = 2 * rad * rad;
+  	for(var nrad = 0; nrad <= rad; nrad++)
+  	for(var d = 0; d < 360 * fineness; d++)
+  	{
+  			var bx = nrad * Math.cos(d);
+  			var by = nrad * Math.sin(d);
+  			var dx = x + bx;
+  			var dy = y + by;
+  			var dist = by * by + bx * bx;
+  			var alpha = (nrad) / rad * 255;
+  			// console.log(alpha);
+  			// var alpha = 0;
+  			drawLight(parseInt(dx), parseInt(dy), parseInt(alpha));
+
+  			// console.log(bx + ":" + by + ":" + dx + ":" + dy + ":" dist + ":" + alpha);
+
+
+//drawLight(x, y, a)
+  	}
+
+  	contexts[0].putImageData(imageData, 0, 0);
+
+
+
+  }
+
+
+
+window.onload = function(){
+
+$('#n').focus(function(){blacken();console.log('a');})
+$('#a').mousemove(function(e){mm(e);});
+
+// center($('#n'));
+
+for(var i = 0; i < canvases.length; i++)
+{
+
+
+	canvases[i].style.zIndex = "" + (-1*i); 
+	contexts[i] = canvases[i].getContext('2d');
+	contexts[i].canvas.width = window.innerWidth;
+	contexts[i].canvas.height = window.innerHeight * co;	
+
+	if(i==0){
+		// canvases[0].style.position = "relative";
+	
+		var con = canvases[0].getContext('2d');
+		con.beginPath();
+		con.rect(0, 0, width, height);
+		con.fillStyle="black";
+		con.fill();
+		// con.fillStyle = '#3311ff';
+		// con.fill();
+	}
+
+
+}
+
+imageData = contexts[0].createImageData(width, height);
+
+
+
+
+next();
+$('#b').mousemove(mm);
+
+$('#s').click(function(){
+	check($('#guess').val());
+});
+
+blacken();
+// bggen();
+
+alert("Move the cursor around to move the flashlight.\nTry and guess what the silhouette is and input that in the text field and hit submit.")
+
+};
+
+  function drawLight(x, y, a){
+  		var c = 0;
+	setPixel(imageData, x, y, c, c, c, a);
+
+	// contexts[0].putImageData(imageData, width, height);
+
+  }
+
+  function update()
+  {
+  	contexts[0].putImageData(imageData, 0, 0);
+  }
+
+  function setPixel(id, x, y, r, g, b, a){
+  	var i = (x + y * id.width) * 4;
+  	id.data[i+0] = r;//formatting :/
+  	id.data[i+1] = g;
+  	id.data[i+2] = b;
+  	id.data[i+3] = a;
+
+  }
+
+  function blacken(){
+  	for(var y = 0; y < height; y++)
+  		for(var x = 0; x < width; x++)
+  		{
+  			setPixel(imageData, x, y, 0, 0, 0, 255);
+  		}
+	contexts[0].putImageData(imageData, 0, 0);
+  }
+
+  function bggen(){
+  	var imd = contexts[2].createImageData(width, height);
+
+  	for(var y = 0; y < height; y++)
+  		for(var x = 0; x < width; x++)
+  		{
+  			setPixel(imd, x, y, 0, 0, 0, 255);
+  		}
+	contexts[2].putImageData(imd, 0, 0);
+  }
+
+  function whiten(){
+  	for(var y = 0; y < height; y++)
+  		for(var x = 0; x < width; x++)
+  		{
+  			setPixel(imageData, x, y, 255, 255, 255, 0);
+  		}
+	contexts[0].putImageData(imageData, 0, 0);
+
+
+  }  
+
+  // function center(a){
+  // 	a.css('left', (width - a.width()) / 2);
+  // }
+
+function next(){
+	var s = 1;
+
+	if(cnum >= max)
+	{
+		$('#r').html("You win!");
+
+		blacken();
+		$('#h').hide();
+		// $('#b').hide();
+
+		var img = new Image();
+		img.src="winner.png";
+		img.onload = function(){
+			var c = canvases[1];
+			contexts[1].clearRect(0, 0, canvases[1].width, canvases[1].height);
+			var args = [(c.width - img.width)/2 , (c.height - img.height)/2, img.width * s, img.height * s];
+			contexts[1].drawImage(img, args[0] , args[1], args[2], args[3]);
+			console.log(args);
+			fineness+=0.5;
+			rad *= 2;			
+		};
+
+
+		return;
+
+	}
+
+$('#ln').text((cnum + 1));
+// inPlay = false;
+var img = new Image();
+// img.src=cnum + ".png";
+img.src=d[cnum] + ".png";
+img.onload = function(){
+	var c = canvases[1];
+
+
+	contexts[1].clearRect(0, 0, canvases[1].width, canvases[1].height);
+	var args = [(c.width - img.width)/2 , (c.height - img.height)/2, img.width * s, img.height * s];
+	contexts[1].drawImage(img, args[0] , args[1], args[2], args[3]);
+	console.log(args);
+};
+
+
+}
+
+function check(ar){
+
+	for(var i = 0; i < answers[cnum].length; i++)
+		if(ar.toUpperCase()===answers[cnum][i].toUpperCase())
+		{
+			console.log('Winrar');
+			cnum++;
+			fineness+= 0.75;
+			var scale = 10;
+			$('#guess').val("");
+			$('#n').css('background-color', '#3f3');
+			rad *= scale;
+			setTimeout(function(){
+				$('#n').css('background-color', '#ddd');
+				next();
+				rad/=scale;
+				fineness-= 0.75;
+				blacken();
+			}, 2500);
+
+			return;
+
+		}
+	burst($('#n'));
+	return false;
+}
+
+function burst(e){
+	e.jrumble();
+	e.trigger('startRumble');
+	setTimeout(function(){e.trigger('stopRumble')}, 400);
+}
+
+
+
+
+</script>
+<style>
+.lc{
+		position:absolute;
+		left:0px;
+		top:0px;
+		margin:0;
+		padding:0;
+
+}
+
+#n{
+	position:relative;
+	border:solid black 1px;
+	margin:0;
+	vertical-align: bottom;
+	margin-left:auto;
+	margin-right:auto;
+	padding:0;
+	padding-bottom:5px;
+	border-radius:10px;
+/*	left:-50%;*/
+	background-color:#ddd;
+
+	line-height:0.75em;
+	width:50%;
+}
+
+#np{
+position:absolute;
+left:50%;
+bottom:10px;
+width:30%;
+}
+</style>
+
+</head>
+<body style="overflow:hidden;">
+
+<canvas width="100%" height="100%" id="a" class="lc"></canvas>
+<canvas width="100%" height="100%" id="b" class="lc"></canvas>
+<!-- <canvas width="100%" height="100%" id="c" class="lc"></canvas>
+ -->
+<!-- <div style="" id="np">
+ --><div id="n" align="center">
+<p id="r">Level <span id="ln">0</span></p>
+<div id="h"><input type="text" id="guess"><input type="button" value="Submit" id="s"></div>
+</div>
+<!-- </div>
+ --></body>
+</html>
